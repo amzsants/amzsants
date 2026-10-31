@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 48" role="img" aria-labelledby="title">
+  <title id="title">Ferramentas de inteligência artificial</title>
+  <rect width="250" height="48" rx="8" fill="#17171C"/>
+  <g fill="none" stroke="#B8B8C0" stroke-width="1.4">
+    <rect x="16" y="14" width="20" height="20" rx="4"/>
+    <path d="M21 9V14M31 9V14M21 34V39M31 34V39M11 19H16M11 29H16M36 19H41M36 29H41"/>
+  </g>
+  <path d="M22 24H30M26 20V28" stroke="#C86A7D" stroke-width="1.5"/>
+  <text x="55" y="29" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#E8E6E9">Ferramentas de IA</text>
+</svg>

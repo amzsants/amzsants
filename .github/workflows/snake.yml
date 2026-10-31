@@ -1,0 +1,173 @@
+name: Atualizar perfil
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 6 * * *"
+  push:
+    paths:
+      - ".github/workflows/snake.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profile-assets
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.repository == 'amzsants/amzsants'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Obter arquivos
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Preparar saída temporária
+        run: mkdir -p .profile-build
+
+      - name: Gerar snake
+        continue-on-error: true
+        uses: Platane/snk/svg-only@d8f6715049803e982ee5ff501b6b9b7d5deeb09b # v3
+        with:
+          github_user_name: amzsants
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          outputs: |
+            .profile-build/snake-dark.svg?palette=github-dark&color_snake=#C86A7D&color_dots=#17171C,#450A1A,#65142A,#8B1E32,#B04A60
+            .profile-build/snake-light.svg?palette=github-light&color_snake=#8B1E32&color_dots=#E8E6E9,#DAC4CB,#B98A98,#8B1E32,#450A1A
+
+      - name: Gerar estatísticas públicas
+        continue-on-error: true
+        uses: stats-organization/github-readme-stats-action@2c498845f71017821efaad14293ebc736156ef21 # v2
+        with:
+          card: stats
+          options: username=amzsants&locale=pt-br&hide_rank=true&show_icons=false&hide_border=true&bg_color=08080A&title_color=E8E6E9&text_color=B8B8C0&icon_color=8B1E32&disable_animations=true
+          path: .profile-build/stats.svg
+          fail_on_error: "true"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verificar linguagens públicas
+        id: languages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          repos=$(gh api users/amzsants/repos --paginate --jq '.[] | select(.name != "amzsants" and .fork == false and .language != null) | .name')
+          if [ -n "$repos" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Gerar linguagens públicas
+        if: steps.languages.outputs.available == 'true'
+        continue-on-error: true
+        uses: stats-organization/github-readme-stats-action@2c498845f71017821efaad14293ebc736156ef21 # v2
+        with:
+          card: top-langs
+          options: username=amzsants&exclude_repo=amzsants&locale=pt-br&layout=compact&langs_count=5&card_width=495&hide_border=true&bg_color=08080A&title_color=E8E6E9&text_color=B8B8C0&disable_animations=true
+          path: .profile-build/languages.svg
+          fail_on_error: "true"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Gerar sequência de contribuições
+        continue-on-error: true
+        uses: DenverCoder1/github-readme-streak-stats@adbd07609bb771d3510a15ee2f3b31d5fbe5201d # v1
+        with:
+          options: user=amzsants&locale=pt_BR&timezone=America%2FSao_Paulo&hide_border=true&background=08080A&stroke=17171C&ring=8B1E32&fire=C86A7D&currStreakNum=E8E6E9&sideNums=E8E6E9&currStreakLabel=C86A7D&sideLabels=B8B8C0&dates=B8B8C0&disable_animations=true
+          path: .profile-build/streak.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Gerar gráfico e publicar somente SVGs válidos
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAS_LANGUAGES: ${{ steps.languages.outputs.available }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import datetime as dt
+          import json, os, pathlib, shutil, urllib.request
+          import xml.etree.ElementTree as ET
+          from zoneinfo import ZoneInfo
+
+          build = pathlib.Path('.profile-build')
+          assets = pathlib.Path('assets')
+          now = dt.datetime.now(ZoneInfo('America/Sao_Paulo'))
+          today = now.date()
+          start = today - dt.timedelta(days=30)
+          query = '''query($login:String!,$from:DateTime!,$to:DateTime!){
+            user(login:$login){ contributionsCollection(from:$from,to:$to){
+              contributionCalendar{weeks{contributionDays{date contributionCount}}}
+            }}
+          }'''
+          payload = {'query': query, 'variables': {
+              'login': 'amzsants', 'from': str(start)+'T00:00:00-03:00',
+              'to': now.isoformat(timespec='seconds')}}
+          try:
+              req = urllib.request.Request('https://api.github.com/graphql',
+                  data=json.dumps(payload).encode(), headers={
+                      'Authorization': 'Bearer '+os.environ['GH_TOKEN'],
+                      'Content-Type': 'application/json', 'User-Agent': 'amzsants-profile'})
+              with urllib.request.urlopen(req, timeout=45) as response:
+                  data = json.load(response)
+              if data.get('errors'):
+                  raise RuntimeError('GitHub GraphQL retornou erros')
+              weeks = data['data']['user']['contributionsCollection']['contributionCalendar']['weeks']
+              counts = {d['date']: d['contributionCount'] for w in weeks for d in w['contributionDays']}
+              days = [start + dt.timedelta(days=i) for i in range(31)]
+              values = [counts[str(d)] for d in days]
+              maximum = max(1, max(values))
+              points = [(64+i*832/30, 190-v*100/maximum) for i,v in enumerate(values)]
+              line = ' '.join(f'{x:.1f},{y:.1f}' for x,y in points)
+              area = f'64,190 {line} 896,190'
+              svg = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 270" role="img">',
+                  '<title>Contribuições visíveis no GitHub — últimos 31 dias</title>',
+                  '<rect width="960" height="270" rx="12" fill="#08080A"/>',
+                  '<g font-family="Segoe UI,Arial,sans-serif">',
+                  '<text x="40" y="43" fill="#E8E6E9" font-size="23">Atividade / últimos 31 dias</text>',
+                  f'<text x="40" y="69" fill="#B8B8C0" font-size="16">{sum(values)} contribuições visíveis · atualização {now:%d/%m/%Y %H:%M} BRT</text>']
+              for y,value in [(90,maximum),(140,maximum/2),(190,0)]:
+                  svg += [f'<path d="M64 {y}H896" stroke="#17171C"/>',
+                      f'<text x="48" y="{y+5}" text-anchor="end" fill="#B8B8C0" font-size="14">{value:g}</text>']
+              svg += [f'<polygon points="{area}" fill="#450A1A" opacity=".55"/>',
+                  f'<polyline points="{line}" fill="none" stroke="#C86A7D" stroke-width="2.5" stroke-linejoin="round"/>']
+              for i in [0,10,20,30]:
+                  x,y = points[i]
+                  svg += [f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" fill="#E8E6E9"/>',
+                      f'<text x="{x:.1f}" y="224" text-anchor="middle" fill="#B8B8C0" font-size="16">{days[i]:%d/%m}</text>']
+              svg += ['</g></svg>']
+              (build/'activity.svg').write_text('\n'.join(svg), encoding='utf-8')
+          except Exception as error:
+              print(f'::warning::Gráfico não atualizado: {type(error).__name__}. Mantido o arquivo anterior.')
+
+          if os.environ['HAS_LANGUAGES'] == 'false':
+              shutil.copyfile(assets/'languages-empty.svg', build/'languages.svg')
+          for name in ['stats', 'languages', 'streak', 'activity', 'snake-dark', 'snake-light']:
+              source = build/f'{name}.svg'
+              if not source.exists():
+                  print(f'::warning::{name}: sem nova imagem; mantida a anterior.')
+                  continue
+              try:
+                  root = ET.fromstring(source.read_text(encoding='utf-8'))
+                  if root.tag != '{http://www.w3.org/2000/svg}svg':
+                      raise ValueError('Resposta não é SVG')
+                  text = ' '.join(root.itertext()).lower()
+                  if any(t in text for t in ['something went wrong', 'could not fetch', 'rate limit exceeded']):
+                      raise ValueError('Card contém mensagem de erro')
+                  shutil.copyfile(source, assets/source.name)
+              except (ET.ParseError, ValueError) as error:
+                  print(f'::warning::{name}: imagem rejeitada; mantida a anterior.')
+          PY
+
+      - name: Salvar imagens
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/stats.svg assets/languages.svg assets/streak.svg assets/activity.svg assets/snake-dark.svg assets/snake-light.svg
+          if ! git diff --cached --quiet; then
+            git commit -m "Atualiza imagens do perfil"
+            git pull --rebase origin "${{ github.event.repository.default_branch }}"
+            git push origin "HEAD:${{ github.event.repository.default_branch }}"
+          fi

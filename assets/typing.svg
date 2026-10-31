@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 50" role="img" aria-labelledby="title">
+  <title id="title">Interesse em desenvolvimento, automação de processos e RPA</title>
+  <style>@media (prefers-reduced-motion: reduce) { .motion { display: none; } }</style>
+  <rect width="520" height="50" rx="8" fill="#08080A"/>
+  <text x="260" y="31" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#B8B8C0">Desenvolvimento · Automação · RPA</text>
+  <g class="motion">
+    <rect x="25" y="8" width="470" height="34" fill="#08080A"/>
+    <clipPath id="typing">
+      <rect x="34" y="8" width="0" height="34">
+        <animate attributeName="width" values="0;450;450;0;0" keyTimes="0;.42;.84;.95;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+    </clipPath>
+    <g clip-path="url(#typing)" font-family="Consolas, monospace" font-size="17" fill="#B8B8C0">
+      <text x="260" y="31" text-anchor="middle" opacity="1">Interesse em desenvolvimento<animate attributeName="opacity" values="1;0;0;1" keyTimes="0;.333333;.666667;1" dur="24s" repeatCount="indefinite" calcMode="discrete"/></text>
+      <text x="260" y="31" text-anchor="middle" opacity="0">Explorando ferramentas de IA<animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.333333;.666667;1" dur="24s" repeatCount="indefinite" calcMode="discrete"/></text>
+      <text x="260" y="31" text-anchor="middle" opacity="0">Interesse em automação e RPA<animate attributeName="opacity" values="0;0;1;0" keyTimes="0;.333333;.666667;1" dur="24s" repeatCount="indefinite" calcMode="discrete"/></text>
+    </g>
+  </g>
+</svg>

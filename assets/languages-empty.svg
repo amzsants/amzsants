@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 495 150" role="img" aria-labelledby="title desc">
+  <title id="title">Linguagens / dados públicos</title>
+  <desc id="desc">Sem dados públicos de linguagens para apresentar. Projetos privados não são consultados.</desc>
+  <rect width="495" height="150" rx="10" fill="#08080A"/>
+  <path d="M26 26H72" stroke="#8B1E32" stroke-width="2"/>
+  <text x="26" y="60" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#E8E6E9">Linguagens / dados públicos</text>
+  <text x="26" y="91" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#B8B8C0">Sem dados de linguagens para apresentar.</text>
+  <text x="26" y="118" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#B8B8C0">Projetos privados não são consultados.</text>
+</svg>
