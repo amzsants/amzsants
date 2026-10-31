@@ -8,7 +8,7 @@
 
 ## Entre a rotina e o código
 
-Sou **Amoz Santos**, aprendiz na função de auxiliar administrativo. A rotina administrativa é meu ponto de partida para pensar em desenvolvimento de software e automação de processos.
+Me chamo **Amoz Santos**, aprendiz na função de auxiliar administrativo. A rotina administrativa é meu ponto de partida para pensar em desenvolvimento de software e automação de processos.
 
 Tenho interesse em RPA e em como a tecnologia pode apoiar tarefas do dia a dia. Também utilizo ferramentas de inteligência artificial e exploro suas possibilidades.
 
